@@ -1,6 +1,13 @@
 #ifndef VAR_H
 #define VAR_H
 
+#define JK_H 0x485F4B4A
+#define JK_R 0x525F4B4A
+
+#define VERSION_MAJ 0
+#define VERSION_MIN 8
+#define VERSION_REV 4
+
 //active = if clocks are kept
 //adv = advanced more for freeset
 //enfCharger = enforce charger
