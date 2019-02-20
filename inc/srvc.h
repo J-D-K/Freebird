@@ -9,6 +9,7 @@ Handle getSessionHandle();
 bool registerService();
 void unregisterService();
 
+void server();
 bool syncAndAccept();
 bool receiveIPC();
 void reply();

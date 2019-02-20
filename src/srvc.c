@@ -1,9 +1,15 @@
 #include <switch.h>
 
 #include "srvc.h"
+#include "proc.h"
 
-#define TID 0x010000000000C235
-uint64_t pid;
+enum
+{
+    stateSyncAccept,
+    stateServe
+} serviceStates;
+
+static int state = stateSyncAccept;
 
 static Handle srvcHandle, sessionHandle;
 
@@ -52,4 +58,38 @@ bool receiveIPC(IpcParsedCommand *p)
         return false;
     ipcParse(p);
     return true;
+}
+
+void server()
+{
+    switch(state)
+    {
+        case stateSyncAccept:
+            if(syncAndAccept())
+                state = stateServe;
+            break;
+
+        case stateServe:
+            {
+                IpcParsedCommand p;
+                if(receiveIPC(&p))
+                {
+                    if(p.CommandType == IpcCommandType_Close)
+                    {
+                        svcCloseHandle(getSessionHandle());
+                        state = stateSyncAccept;
+                    }
+                    else
+                    {
+                        processIpc(&p);
+                    }
+                }
+                else
+                {
+                    svcCloseHandle(getSessionHandle());
+                    state = syncAndAccept();
+                }
+            }
+            break;
+    }
 }

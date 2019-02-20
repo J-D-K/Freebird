@@ -11,12 +11,6 @@
 #include "var.h"
 #include "apm.h"
 
-enum
-{
-    stateSyncAccept,
-    stateServe
-} serviceStates;
-
 uint32_t __nx_applet_type = AppletType_None;
 
 #define HEAP_SIZE 0x500
@@ -38,6 +32,9 @@ void __appInit(void)
     if(R_FAILED(res = smInitialize()))
         fatalSimple(MAKERESULT(Module_Libnx, LibnxError_InitFail_SM));
 
+    if(R_FAILED(res = apmInitialize()))
+        fatalSimple(res);
+
     if(R_FAILED(res = apmInit()))
        fatalSimple(res);
 
@@ -56,6 +53,8 @@ void __appExit(void)
     pcvExit();
     psmExit();
     hidExit();
+    apmClose();
+    apmExit();
     smExit();
 }
 
@@ -65,7 +64,6 @@ int main(int argc, const char *argv[])
     pcvGetClockRate(PcvModule_Gpu, &setGpu);
     pcvGetClockRate(PcvModule_Emc, &setMem);
 
-    int state = stateSyncAccept;
     uint32_t gCpu, gGpu, gMem;
     while(appletMainLoop())
     {
@@ -93,39 +91,14 @@ int main(int argc, const char *argv[])
                     pcvSetClockRate(PcvModule_Emc, setMem);
             }
             else
-                active = false;
+            {
+                if(!keep)
+                    active = false;
+            }
         }
 
-        switch(state)
-        {
-            case stateSyncAccept:
-                if(syncAndAccept())
-                    state = stateServe;
-                break;
+        server();
 
-            case stateServe:
-                {
-                    IpcParsedCommand p;
-                    if(receiveIPC(&p))
-                    {
-                        if(p.CommandType == IpcCommandType_Close)
-                        {
-                            svcCloseHandle(getSessionHandle());
-                            state = stateSyncAccept;
-                        }
-                        else
-                        {
-                            processIpc(&p);
-                        }
-                    }
-                    else
-                    {
-                        svcCloseHandle(getSessionHandle());
-                        state = syncAndAccept();
-                    }
-                }
-                break;
-        }
         svcSleepThread(1000000);
     }
 }

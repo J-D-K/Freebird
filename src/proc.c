@@ -4,6 +4,7 @@
 
 #include "proc.h"
 #include "srvc.h"
+#include "apm.h"
 #include "var.h"
 #include "set.h"
 #include "get.h"
@@ -24,15 +25,8 @@ void ensureSession()
 
 void resetClock()
 {
-    IpcCommand c;
-    ipcInitialize(&c);
-    struct
-    {
-        uint64_t mag;
-        uint32_t res;
-    } *resp = ipcPrepareHeader(&c, sizeof(resp));
-    resp->mag = JK_R;
-    resp->res = 2;
+    uint32_t perf = 0;
+    apmGetPerformanceMode(&perf);
 }
 
 void sendDefault()
