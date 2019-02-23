@@ -1,32 +1,15 @@
 #ifndef GET_H
 #define GET_H
 
-//Sends active over
-void getActive();
-
-//Sends clock over from command
-void getClock(const IpcParsedCommand *p);
-
-//Sends version numbers over
+//Sends version over
 void sendVersion();
 
-//Sends whether charger enforced
-void chargerIsEnforced();
+//Sends whether mode is on or off
+//[3] = power type
+void sendOnOff(const IpcParsedCommand *p);
 
-//Sends fallback speed
-void getFallback();
-
-//sends whether to use adv
-void getAdv();
-
-//Sends return speed over
-void getRetBack();
-
-//Sends whether wake is t/f
-void getWake();
-
-//Sends system operation mode
-//Mostly for quick debug
-void sendOpMode();
-
+//Sends powertype clockspeed for module
+//[3] = powertype
+//[4] = module
+void sendClockSpeed(const IpcParsedCommand *p);
 #endif // GET_H

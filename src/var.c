@@ -1,5 +1,10 @@
 #include <switch.h>
 #include <stdint.h>
 
-bool active = false, adv = false, enfCharger = true, keep = false, onScreen = false;
-uint32_t setCpu, setGpu, setMem, fallback = 307200000, retback = 307200000;
+bool onHandheld = false, onUSB = false, onCharger = false, onDocked = false;
+bool keepOnWake = false;
+
+uint32_t handCPU = 1020000000, handGPU = 307200000, handRAM = 1331200000;
+uint32_t usbCPU = 1020000000, usbGPU = 307200000, usbRAM = 1331200000;
+uint32_t chargCPU = 1020000000, chargGPU = 307200000, chargRAM = 1331200000;
+uint32_t dockCPU = 1020000000, dockGPU = 768000000, dockRAM = 1600000000;

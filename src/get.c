@@ -4,181 +4,183 @@
 #include "get.h"
 #include "apm.h"
 
-void getActive()
-{
-    IpcCommand c;
-    ipcInitialize(&c);
-
-    struct
-    {
-        uint64_t magic;
-        uint32_t   res;
-        uint32_t   act;
-    } *resp = ipcPrepareHeader(&c, sizeof(*resp));
-    resp->magic = JK_R;
-    resp->res = 0;
-    resp->act = active;
-}
-
-void getClock(const IpcParsedCommand *p)
-{
-    struct
-    {
-        uint64_t magic;
-        uint32_t   cmd;
-        uint32_t   pcv;
-    } *in = p->Raw;
-
-    struct
-    {
-        uint64_t magic;
-        uint32_t   res;
-        uint32_t   clk;
-    } *resp;
-
-    IpcCommand c;
-    ipcInitialize(&c);
-    resp = ipcPrepareHeader(&c, sizeof(*resp));
-    resp->magic = JK_R;
-    resp->res   = 0;
-
-    switch(in->pcv)
-    {
-        case PcvModule_Cpu:
-            resp->clk = setCpu;
-            break;
-
-        case PcvModule_Gpu:
-            resp->clk = setGpu;
-            break;
-
-        case PcvModule_Emc:
-            resp->clk = setMem;
-            break;
-    }
-}
-
 void sendVersion()
 {
     IpcCommand c;
     ipcInitialize(&c);
-
     struct
     {
-        uint64_t magic;
-        uint32_t   res;
-        uint32_t  vers;
+        uint64_t mag;
+        uint32_t res;
+        uint32_t ver;
     } *resp = ipcPrepareHeader(&c, sizeof(*resp));
-    resp->magic = JK_R;
-    resp->res   =    0;
-    resp->vers  = VERSION_MAJ << 24 | VERSION_MIN << 16 | VERSION_REV << 8;
+    resp->mag = JK_R;
+    resp->res = 0;
+    resp->ver = VERSION_MAJ << 24 | VERSION_MIN << 16 | VERSION_REV << 8;
 }
 
-void chargerIsEnforced()
+void sendOnOff(const IpcParsedCommand *p)
 {
     IpcCommand c;
     ipcInitialize(&c);
     struct
     {
         uint64_t mag;
-        uint32_t res;
-        uint32_t enf;
-    } *resp = ipcPrepareHeader(&c, sizeof(*resp));
-    resp->mag = JK_R;
-    resp->res = 0;
-    resp->enf = enfCharger;
-}
-
-void getFallback()
-{
-    IpcCommand c;
-    ipcInitialize(&c);
-    struct
-    {
-        uint64_t mag;
-        uint32_t res;
-        uint32_t fal;
-    } *resp = ipcPrepareHeader(&c, sizeof(*resp));
-    resp->mag = JK_R;
-    resp->res = 0;
-    resp->fal = fallback;
-}
-
-void getAdv()
-{
-    IpcCommand c;
-    ipcInitialize(&c);
+        uint32_t cmd;
+        uint32_t pwt;
+    } *in = p->Raw;
 
     struct
     {
         uint64_t mag;
         uint32_t res;
-        uint32_t adv;
+        uint32_t on;
     } *resp = ipcPrepareHeader(&c, sizeof(*resp));
-    resp->mag = JK_R;
-    resp->res = 0;
-    resp->adv = adv;
-}
 
-void getRetBack()
-{
-    IpcCommand c;
-    ipcInitialize(&c);
-    struct
+    switch(in->pwt)
     {
-        uint64_t mag;
-        uint32_t res;
-        uint32_t ret;
-    } *resp = ipcPrepareHeader(&c, sizeof(*resp));
-    resp->mag = JK_R;
-    resp->res = 0;
-    resp->ret = retback;
-}
+        case POWER_TYPE_HANDHELD:
+            resp->on = onHandheld;
+            break;
 
-void getWake()
-{
-    IpcCommand c;
-    ipcInitialize(&c);
-    struct
-    {
-        uint64_t mag;
-        uint32_t res;
-        uint32_t wak;
-    } *resp = ipcPrepareHeader(&c, sizeof(*resp));
-    resp->mag = JK_R;
-    resp->res = 0;
-    resp->wak = keep;
-}
+        case POWER_TYPE_USB:
+            resp->on = onUSB;
+            break;
 
-void sendOpMode()
-{
-    uint32_t perfMode = 0;
-    Result res = 0;
-    if(R_FAILED(res = apmGetPerformanceMode(&perfMode)))
-    {
-        IpcCommand c;
-        ipcInitialize(&c);
-        struct
-        {
-            uint64_t mag;
-            uint32_t res;
-        } *resp = ipcPrepareHeader(&c, sizeof(*resp));
-        resp->mag = JK_R;
-        resp->res = res;
-    }
-    else
-    {
-        IpcCommand c;
-        ipcInitialize(&c);
-        struct
-        {
-            uint64_t mag;
-            uint32_t res;
-            uint32_t opm;
-        } *resp = ipcPrepareHeader(&c, sizeof(*resp));
-        resp->mag = JK_R;
-        resp->res = 0;
-        resp->opm = perfMode;
+        case POWER_TYPE_CHARGER:
+            resp->on = onCharger;
+            break;
+
+        case POWER_TYPE_DOCKED:
+            resp->on = onDocked;
+            break;
+
+        default:
+            resp->on = 0;
+            resp->res = 1;
+            break;
     }
 }
 
+void sendClockSpeed(const IpcParsedCommand *p)
+{
+    uint32_t res = 0, clkSpd = 0;
+    struct
+    {
+        uint64_t mag;
+        uint32_t cmd;
+        uint32_t pwt;
+        uint32_t mod;
+    } *in = p->Raw;
+
+    switch(in->pwt)
+    {
+        case POWER_TYPE_HANDHELD:
+            {
+                switch(in->mod)
+                {
+                    case PcvModule_Cpu:
+                        clkSpd = handCPU;
+                        break;
+
+                    case PcvModule_Gpu:
+                        clkSpd = handGPU;
+                        break;
+
+                    case PcvModule_Emc:
+                        clkSpd = handRAM;
+                        break;
+
+                    default:
+                        res = 2;
+                        clkSpd = 0xFFFFFFFF;
+                        break;
+                }
+            }
+            break;
+
+        case POWER_TYPE_USB:
+            {
+                switch(in->mod)
+                {
+                    case PcvModule_Cpu:
+                        clkSpd = usbCPU;
+                        break;
+
+                    case PcvModule_Gpu:
+                        clkSpd = usbGPU;
+                        break;
+
+                    case PcvModule_Emc:
+                        clkSpd = usbRAM;
+                        break;
+
+                    default:
+                        res = 2;
+                        clkSpd = 0xFFFFFFFF;
+                        break;
+                }
+            }
+            break;
+
+        case POWER_TYPE_CHARGER:
+            {
+                switch(in->mod)
+                {
+                    case PcvModule_Cpu:
+                        clkSpd = chargCPU;
+                        break;
+
+                    case PcvModule_Gpu:
+                        clkSpd = chargGPU;
+                        break;
+
+                    case PcvModule_Emc:
+                        clkSpd = chargRAM;
+                        break;
+
+                    default:
+                        res = 2;
+                        clkSpd = 0xFFFFFFFF;
+                        break;
+                }
+            }
+            break;
+
+        case POWER_TYPE_DOCKED:
+            {
+                switch(in->mod)
+                {
+                    case PcvModule_Cpu:
+                        clkSpd = dockCPU;
+                        break;
+
+                    case PcvModule_Gpu:
+                        clkSpd = dockGPU;
+                        break;
+
+                    case PcvModule_Emc:
+                        clkSpd = dockRAM;
+                        break;
+
+                    default:
+                        res = 2;
+                        clkSpd = 0xFFFFFFFF;
+                        break;
+                }
+            }
+            break;
+    }
+
+    IpcCommand c;
+    ipcInitialize(&c);
+    struct
+    {
+        uint64_t mag;
+        uint32_t res;
+        uint32_t clk;
+    } *resp = ipcPrepareHeader(&c, sizeof(*resp));
+    resp->mag = JK_R;
+    resp->res = res;
+    resp->clk = clkSpd;
+}

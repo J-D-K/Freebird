@@ -3,8 +3,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <malloc.h>
-
 #include "srvc.h"
 #include "proc.h"
 #include "util.h"
@@ -13,7 +11,7 @@
 
 uint32_t __nx_applet_type = AppletType_None;
 
-#define HEAP_SIZE 0x500
+#define HEAP_SIZE 0x80000
 char fakeHeap[HEAP_SIZE];
 void __libnx_initheap(void)
 {
@@ -44,12 +42,20 @@ void __appInit(void)
     if(R_FAILED(res = psmInitialize()))
         fatalSimple(res);
 
+    if(R_FAILED(res = fsInitialize()))
+        fatalSimple(res);
+
+    if(R_FAILED(res = fsdevMountSdmc()))
+        fatalSimple(res);
+
     registerService();
 }
 
 void __appExit(void)
 {
     unregisterService();
+    fsdevUnmountAll();
+    fsExit();
     pcvExit();
     psmExit();
     hidExit();
@@ -60,14 +66,10 @@ void __appExit(void)
 
 int main(int argc, const char *argv[])
 {
-    pcvGetClockRate(PcvModule_Cpu, &setCpu);
-    pcvGetClockRate(PcvModule_Gpu, &setGpu);
-    pcvGetClockRate(PcvModule_Emc, &setMem);
-
     uint32_t gCpu, gGpu, gMem;
     while(appletMainLoop())
     {
-        if(active)
+        /*if(active)
         {
             pcvGetClockRate(PcvModule_Cpu, &gCpu);
             pcvGetClockRate(PcvModule_Emc, &gMem);
@@ -95,7 +97,7 @@ int main(int argc, const char *argv[])
                 if(!keep)
                     active = false;
             }
-        }
+        }*/
 
         server();
 

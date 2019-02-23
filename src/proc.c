@@ -9,6 +9,15 @@
 #include "set.h"
 #include "get.h"
 
+enum
+{
+    CMD_ENSURE,
+    CMD_SENDVER,
+    CMD_ONOFF,
+    CMD_SENDONOFF,
+    CMD_SETCLOCK,
+} cmds;
+
 void ensureSession()
 {
     IpcCommand c;
@@ -54,91 +63,24 @@ void processIpc(const IpcParsedCommand *proc)
     {
         switch(base->cmd)
         {
-            //Just make sure session is open
-            case 0:
+            case CMD_ENSURE:
                 ensureSession();
                 break;
 
-            //de/activate
-            case 1:
-                setActive();
-                break;
-
-            //set clock
-            case 2:
-                setClock(proc);
-                break;
-
-            //Removed
-            case 3:
-                resetClock();
-                break;
-
-            //Returns if clocks are being held
-            case 4:
-                getActive();
-                break;
-
-            //Return internal speeds
-            case 5:
-                getClock(proc);
-                break;
-
-            //send version over
-            case 6:
+            case CMD_SENDVER:
                 sendVersion();
                 break;
 
-            //sets charger enforcement
-            case 7:
-                setChargerEnforcement(proc);
+            case CMD_ONOFF:
+                turnOnOff(proc);
                 break;
 
-            //sends whether charger is enforced
-            case 8:
-                chargerIsEnforced();
+            case CMD_SENDONOFF:
+                sendOnOff(proc);
                 break;
 
-            //sets fallback speed
-            case 9:
-                setFallback(proc);
-                break;
-
-            //sends fallback
-            case 10:
-                getFallback();
-                break;
-
-            //enables/disables advanced mode
-            case 11:
-                setAdv(proc);
-                break;
-
-            //gets whether adv should be usable
-            case 12:
-                getAdv();
-                break;
-
-            //Sets clock speed to return to if plugged back in
-            case 13:
-                setRetback(proc);
-                break;
-
-            //gets ^
-            case 14:
-                getRetBack();
-                break;
-
-            case 15:
-                setWake(proc);
-                break;
-
-            case 16:
-                getWake();
-                break;
-
-            case 17:
-                sendOpMode();
+            case CMD_SETCLOCK:
+                setClockSpeed(proc);
                 break;
 
             default:
