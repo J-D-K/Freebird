@@ -166,7 +166,7 @@ clean:
 	@rm -fr $(BUILD) $(TARGET).nsp $(TARGET).nso $(TARGET).nro $(TARGET).nacp $(TARGET).npdm $(TARGET).elf $(TARGET).kip
 
 send: $(BUILD)
-	@nxlink $(TARGET).nro
+	@nxlink $(TARGET).nsp
 
 
 #---------------------------------------------------------------------------------

@@ -13,7 +13,8 @@ typedef enum
     POWER_TYPE_HANDHELD,
     POWER_TYPE_USB,
     POWER_TYPE_CHARGER,
-    POWER_TYPE_DOCKED
+    POWER_TYPE_DOCKED,
+    POWER_TYPE_GLOBAL
 } PowerTypes;
 
 extern bool onHandheld, onUSB, onCharger, onDocked;

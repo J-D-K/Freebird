@@ -8,6 +8,7 @@
 #include "var.h"
 #include "set.h"
 #include "get.h"
+#include "save.h"
 
 enum
 {
@@ -16,6 +17,8 @@ enum
     CMD_ONOFF,
     CMD_SENDONOFF,
     CMD_SETCLOCK,
+    CMD_SENDCLOCK,
+    CMD_SAVECFG,
 } cmds;
 
 void ensureSession()
@@ -81,6 +84,14 @@ void processIpc(const IpcParsedCommand *proc)
 
             case CMD_SETCLOCK:
                 setClockSpeed(proc);
+                break;
+
+            case CMD_SENDCLOCK:
+                sendClockSpeed(proc);
+                break;
+
+            case CMD_SAVECFG:
+                saveCfg();
                 break;
 
             default:
