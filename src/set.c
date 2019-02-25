@@ -33,6 +33,10 @@ void turnOnOff(const IpcParsedCommand *p)
             onDocked = in->on;
             break;
 
+        case POWER_TYPE_GLOBAL:
+            onGlobal = in->on;
+            break;
+
         default:
             res = 1;
             break;
@@ -150,6 +154,29 @@ void setClockSpeed(const IpcParsedCommand *p)
 
                     default:
                         res = 2;
+                }
+            }
+            break;
+
+        case POWER_TYPE_GLOBAL:
+            {
+                switch(in->mod)
+                {
+                    case PcvModule_Cpu:
+                        globalCPU = in->spd;
+                        break;
+
+                    case PcvModule_Gpu:
+                        globalGPU = in->spd;
+                        break;
+
+                    case PcvModule_Emc:
+                        globalRAM = in->spd;
+                        break;
+
+                    default:
+                        res = 2;
+                        break;
                 }
             }
             break;

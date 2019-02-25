@@ -12,4 +12,7 @@ void sendOnOff(const IpcParsedCommand *p);
 //[3] = powertype
 //[4] = module
 void sendClockSpeed(const IpcParsedCommand *p);
+
+//Sends current power mode
+void sendPowerType();
 #endif // GET_H

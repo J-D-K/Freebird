@@ -170,6 +170,31 @@ void sendClockSpeed(const IpcParsedCommand *p)
                 }
             }
             break;
+
+        case POWER_TYPE_GLOBAL:
+            {
+                switch(in->mod)
+                {
+                    case PcvModule_Cpu:
+                        clkSpd = globalCPU;
+                        break;
+
+                    case PcvModule_Gpu:
+                        clkSpd = globalGPU;
+                        break;
+
+                    case PcvModule_Emc:
+                        clkSpd = globalRAM;
+                        break;
+
+                    default:
+                        res = 2;
+                        clkSpd = 0xFFFFFFFF;
+                        break;
+                }
+            }
+            break;
+
     }
 
     IpcCommand c;
@@ -183,4 +208,45 @@ void sendClockSpeed(const IpcParsedCommand *p)
     resp->mag = JK_R;
     resp->res = res;
     resp->clk = clkSpd;
+}
+
+void sendPowerType()
+{
+    uint32_t pwt = 0xFFFFFFFF, perf = 0;
+    apmGetPerformanceMode(&perf);
+    IpcCommand c;
+    ipcInitialize(&c);
+
+    if(perf == 1)
+        pwt = POWER_TYPE_DOCKED;
+    else
+    {
+        ChargerType charger;
+        psmGetChargerType(&charger);
+
+        switch(charger)
+        {
+            case ChargerType_None:
+                pwt = POWER_TYPE_HANDHELD;
+                break;
+
+            case ChargerType_Usb:
+                pwt = POWER_TYPE_USB;
+                break;
+
+            case ChargerType_Charger:
+                pwt = POWER_TYPE_CHARGER;
+                break;
+        }
+    }
+
+    struct
+    {
+        uint64_t mag;
+        uint32_t res;
+        uint32_t pwt;
+    } *resp = ipcPrepareHeader(&c, sizeof(*resp));
+    resp->mag = JK_R;
+    resp->res = 0;
+    resp->pwt = pwt;
 }

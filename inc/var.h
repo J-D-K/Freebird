@@ -17,12 +17,13 @@ typedef enum
     POWER_TYPE_GLOBAL
 } PowerTypes;
 
-extern bool onHandheld, onUSB, onCharger, onDocked;
+extern bool onHandheld, onUSB, onCharger, onDocked, onGlobal;
 extern bool keepOnWake;
 
 extern uint32_t handCPU, handGPU, handRAM;
 extern uint32_t usbCPU, usbGPU, usbRAM;
 extern uint32_t chargCPU, chargGPU, chargRAM;
 extern uint32_t dockCPU, dockGPU, dockRAM;
+extern uint32_t globalCPU, globalGPU, globalRAM;
 
 #endif // VAR_H

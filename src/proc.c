@@ -18,6 +18,7 @@ enum
     CMD_SENDONOFF,
     CMD_SETCLOCK,
     CMD_SENDCLOCK,
+    CMD_SENDPWRTYPE,
     CMD_SAVECFG,
 } cmds;
 
@@ -88,6 +89,10 @@ void processIpc(const IpcParsedCommand *proc)
 
             case CMD_SENDCLOCK:
                 sendClockSpeed(proc);
+                break;
+
+            case CMD_SENDPWRTYPE:
+                sendPowerType();
                 break;
 
             case CMD_SAVECFG:
