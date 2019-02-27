@@ -8,6 +8,7 @@
 #include "util.h"
 #include "var.h"
 #include "apm.h"
+#include "clocks.h"
 
 uint32_t __nx_applet_type = AppletType_None;
 
@@ -66,38 +67,9 @@ void __appExit(void)
 
 int main(int argc, const char *argv[])
 {
-    uint32_t gCpu, gGpu, gMem;
     while(appletMainLoop())
     {
-        /*if(active)
-        {
-            pcvGetClockRate(PcvModule_Cpu, &gCpu);
-            pcvGetClockRate(PcvModule_Emc, &gMem);
-
-            pcvGetClockRate(PcvModule_Gpu, &gGpu);
-            if(gGpu != 0)//GPU is turned off in sleep. Perfect timing might still cause hang
-            {
-                if(gCpu != setCpu)
-                    pcvSetClockRate(PcvModule_Cpu, setCpu);
-
-                ChargerType type;
-                psmGetChargerType(&type);
-                if(enfCharger && type == ChargerType_Charger && setGpu < retback)
-                    setGpu = retback;
-                else if(enfCharger && type != ChargerType_Charger && setGpu > fallback)
-                    setGpu = fallback;
-
-                if(gGpu != setGpu)
-                    pcvSetClockRate(PcvModule_Gpu, setGpu);
-                if(gMem != setMem)
-                    pcvSetClockRate(PcvModule_Emc, setMem);
-            }
-            else
-            {
-                if(!keep)
-                    active = false;
-            }
-        }*/
+        setClocks();
 
         server();
 
