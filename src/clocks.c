@@ -11,16 +11,24 @@ static inline void getClocks(uint32_t *cpu, uint32_t *gpu, uint32_t *ram)
     pcvGetClockRate(PcvModule_Emc, ram);
 }
 
+static inline bool isAsleep()
+{
+    uint32_t gpuSpd = 0;
+    pcvGetClockRate(PcvModule_Gpu, &gpuSpd);
+    return gpuSpd == 0;
+}
+
+static int sig = 0;
+static uint32_t gCPU, gGPU, gRAM;
 void setClocks()
 {
-    uint32_t gCPU, gGPU, gRAM;
-
     pcvGetClockRate(PcvModule_Gpu, &gGPU);
-    if(gGPU != 0)// Not asleep
+    if(!isAsleep())// Not asleep
     {
         //Global takes priority over all
-        if(onGlobal)
+        if(onGlobal && !isAsleep())
         {
+            signalFile("onGlobal", sig++);
             getClocks(&gCPU, &gGPU, &gRAM);
             if(globalCPU != 0 && gCPU != globalCPU)
                 pcvSetClockRate(PcvModule_Cpu, globalCPU);
@@ -35,8 +43,9 @@ void setClocks()
         {
             uint32_t perf = 0;
             apmGetPerformanceMode(&perf);
-            if(perf == 1 && onDocked) //Docked mode
+            if(perf == 1 && onDocked && !isAsleep()) //Docked mode
             {
+                signalFile("onDocked", sig++);
                 getClocks(&gCPU, &gGPU, &gRAM);
                 if(dockCPU != 0 && gCPU != dockCPU)
                     pcvSetClockRate(PcvModule_Cpu, dockCPU);
@@ -47,8 +56,9 @@ void setClocks()
                 if(dockRAM != 0 && gRAM != dockRAM)
                     pcvSetClockRate(PcvModule_Emc, dockRAM);
             }
-            else if(onCharger)
+            else if(onCharger && !isAsleep())
             {
+                signalFile("onCharger", sig++);
                 getClocks(&gCPU, &gGPU, &gRAM);
                 if(chargCPU != 0 && gCPU != chargCPU)
                     pcvSetClockRate(PcvModule_Cpu, chargCPU);
@@ -59,8 +69,9 @@ void setClocks()
                 if(chargRAM != 0 && gRAM != chargRAM)
                     pcvSetClockRate(PcvModule_Emc, chargRAM);
             }
-            else if(onUSB)
+            else if(onUSB && !isAsleep())
             {
+                signalFile("onUSB", sig++);
                 getClocks(&gCPU, &gGPU, &gRAM);
                 if(usbCPU != 0 && gCPU != usbCPU)
                     pcvSetClockRate(PcvModule_Cpu, usbCPU);
@@ -71,8 +82,9 @@ void setClocks()
                 if(usbRAM != 0 && gRAM != usbRAM)
                     pcvSetClockRate(PcvModule_Emc, usbRAM);
             }
-            else if(onHandheld)
+            else if(onHandheld && !isAsleep())
             {
+                signalFile("onHandheld", sig++);
                 getClocks(&gCPU, &gGPU, &gRAM);
                 if(handCPU != 0 && gCPU != handCPU)
                     pcvSetClockRate(PcvModule_Cpu, handCPU);
@@ -84,5 +96,10 @@ void setClocks()
                     pcvSetClockRate(PcvModule_Emc, handRAM);
             }
         }
+    }
+    else
+    {
+        signalFile("sleep", sig++);
+        svcSleepThread(100000000);
     }
 }

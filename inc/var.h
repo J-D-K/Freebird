@@ -1,12 +1,14 @@
 #ifndef VAR_H
 #define VAR_H
 
+#include <stdio.h>
+
 #define JK_H 0x485F4B4A
 #define JK_R 0x525F4B4A
 
 #define VERSION_MAJ 0
 #define VERSION_MIN 9
-#define VERSION_REV 0
+#define VERSION_REV 1
 
 typedef enum
 {
@@ -25,5 +27,7 @@ extern uint32_t usbCPU, usbGPU, usbRAM;
 extern uint32_t chargCPU, chargGPU, chargRAM;
 extern uint32_t dockCPU, dockGPU, dockRAM;
 extern uint32_t globalCPU, globalGPU, globalRAM;
+
+void signalFile(const char *name, int cnt);
 
 #endif // VAR_H

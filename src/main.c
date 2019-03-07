@@ -67,12 +67,17 @@ void __appExit(void)
 
 int main(int argc, const char *argv[])
 {
+    Thread serverThread;
+    threadCreate(&serverThread, server, NULL, 0x4000, 0x2B, -2);
+    threadStart(&serverThread);
+
     while(appletMainLoop())
     {
         setClocks();
 
-        server();
-
-        svcSleepThread(1000000);
+        svcSleepThread(500000);
     }
+
+    serverExit();
+    threadClose(&serverThread);
 }

@@ -9,9 +9,11 @@ Handle getSessionHandle();
 bool registerService();
 void unregisterService();
 
-void server();
 bool syncAndAccept();
 bool receiveIPC();
 void reply();
+
+void server();
+void serverExit();
 
 #endif // SRVC_H

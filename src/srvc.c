@@ -10,6 +10,7 @@ enum
 } serviceStates;
 
 static int state = stateSyncAccept;
+static bool run = true;
 
 static Handle srvcHandle, sessionHandle;
 
@@ -62,34 +63,43 @@ bool receiveIPC(IpcParsedCommand *p)
 
 void server()
 {
-    switch(state)
+    while(run)
     {
-        case stateSyncAccept:
-            if(syncAndAccept())
-                state = stateServe;
-            break;
+        switch(state)
+        {
+            case stateSyncAccept:
+                if(syncAndAccept())
+                    state = stateServe;
+                break;
 
-        case stateServe:
-            {
-                IpcParsedCommand p;
-                if(receiveIPC(&p))
+            case stateServe:
                 {
-                    if(p.CommandType == IpcCommandType_Close)
+                    IpcParsedCommand p;
+                    if(receiveIPC(&p))
                     {
-                        svcCloseHandle(getSessionHandle());
-                        state = stateSyncAccept;
+                        if(p.CommandType == IpcCommandType_Close)
+                        {
+                            svcCloseHandle(getSessionHandle());
+                            state = stateSyncAccept;
+                        }
+                        else
+                        {
+                            processIpc(&p);
+                        }
                     }
                     else
                     {
-                        processIpc(&p);
+                        svcCloseHandle(getSessionHandle());
+                        state = syncAndAccept();
                     }
                 }
-                else
-                {
-                    svcCloseHandle(getSessionHandle());
-                    state = syncAndAccept();
-                }
-            }
-            break;
+                break;
+        }
+        svcSleepThread(500000);
     }
+}
+
+void serverExit()
+{
+    run = false;
 }
