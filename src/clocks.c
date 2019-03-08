@@ -18,8 +18,36 @@ static inline bool isAsleep()
     return gpuSpd == 0;
 }
 
-static int sig = 0;
 static uint32_t gCPU, gGPU, gRAM;
+static int powerState = POWER_TYPE_HANDHELD;
+
+void updatePowerState()
+{
+    uint32_t perf = 0;
+    apmGetPerformanceMode(&perf);
+    if(perf == 1)
+        powerState = POWER_TYPE_DOCKED;
+    else
+    {
+        ChargerType chrgr;
+        psmGetChargerType(&chrgr);
+        switch(chrgr)
+        {
+            case ChargerType_None:
+                powerState = POWER_TYPE_HANDHELD;
+                break;
+
+            case ChargerType_Usb:
+                powerState = POWER_TYPE_USB;
+                break;
+
+            case ChargerType_Charger:
+                powerState = POWER_TYPE_CHARGER;
+                break;
+        }
+    }
+}
+
 void setClocks()
 {
     pcvGetClockRate(PcvModule_Gpu, &gGPU);
@@ -28,7 +56,6 @@ void setClocks()
         //Global takes priority over all
         if(onGlobal && !isAsleep())
         {
-            signalFile("onGlobal", sig++);
             getClocks(&gCPU, &gGPU, &gRAM);
             if(globalCPU != 0 && gCPU != globalCPU)
                 pcvSetClockRate(PcvModule_Cpu, globalCPU);
@@ -41,11 +68,9 @@ void setClocks()
         }
         else
         {
-            uint32_t perf = 0;
-            apmGetPerformanceMode(&perf);
-            if(perf == 1 && onDocked && !isAsleep()) //Docked mode
+            updatePowerState();
+            if(powerState == POWER_TYPE_DOCKED && onDocked && !isAsleep()) //Docked mode
             {
-                signalFile("onDocked", sig++);
                 getClocks(&gCPU, &gGPU, &gRAM);
                 if(dockCPU != 0 && gCPU != dockCPU)
                     pcvSetClockRate(PcvModule_Cpu, dockCPU);
@@ -56,9 +81,8 @@ void setClocks()
                 if(dockRAM != 0 && gRAM != dockRAM)
                     pcvSetClockRate(PcvModule_Emc, dockRAM);
             }
-            else if(onCharger && !isAsleep())
+            else if(powerState == POWER_TYPE_CHARGER && onCharger && !isAsleep())
             {
-                signalFile("onCharger", sig++);
                 getClocks(&gCPU, &gGPU, &gRAM);
                 if(chargCPU != 0 && gCPU != chargCPU)
                     pcvSetClockRate(PcvModule_Cpu, chargCPU);
@@ -69,9 +93,8 @@ void setClocks()
                 if(chargRAM != 0 && gRAM != chargRAM)
                     pcvSetClockRate(PcvModule_Emc, chargRAM);
             }
-            else if(onUSB && !isAsleep())
+            else if(powerState == POWER_TYPE_USB && onUSB && !isAsleep())
             {
-                signalFile("onUSB", sig++);
                 getClocks(&gCPU, &gGPU, &gRAM);
                 if(usbCPU != 0 && gCPU != usbCPU)
                     pcvSetClockRate(PcvModule_Cpu, usbCPU);
@@ -82,9 +105,8 @@ void setClocks()
                 if(usbRAM != 0 && gRAM != usbRAM)
                     pcvSetClockRate(PcvModule_Emc, usbRAM);
             }
-            else if(onHandheld && !isAsleep())
+            else if(powerState == POWER_TYPE_HANDHELD && onHandheld && !isAsleep())
             {
-                signalFile("onHandheld", sig++);
                 getClocks(&gCPU, &gGPU, &gRAM);
                 if(handCPU != 0 && gCPU != handCPU)
                     pcvSetClockRate(PcvModule_Cpu, handCPU);
@@ -99,7 +121,6 @@ void setClocks()
     }
     else
     {
-        signalFile("sleep", sig++);
         svcSleepThread(100000000);
     }
 }

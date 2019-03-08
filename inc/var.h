@@ -28,6 +28,4 @@ extern uint32_t chargCPU, chargGPU, chargRAM;
 extern uint32_t dockCPU, dockGPU, dockRAM;
 extern uint32_t globalCPU, globalGPU, globalRAM;
 
-void signalFile(const char *name, int cnt);
-
 #endif // VAR_H
