@@ -75,7 +75,7 @@ int main(int argc, const char *argv[])
     {
         setClocks();
 
-        svcSleepThread(500000);
+        svcSleepThread(500000000);
     }
 
     serverExit();

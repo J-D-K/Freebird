@@ -4,21 +4,8 @@
 #include "apm.h"
 #include "var.h"
 
-static inline void getClocks(uint32_t *cpu, uint32_t *gpu, uint32_t *ram)
-{
-    pcvGetClockRate(PcvModule_Cpu, cpu);
-    pcvGetClockRate(PcvModule_Gpu, gpu);
-    pcvGetClockRate(PcvModule_Emc, ram);
-}
-
-static inline bool isAsleep()
-{
-    uint32_t gpuSpd = 0;
-    pcvGetClockRate(PcvModule_Gpu, &gpuSpd);
-    return gpuSpd == 0;
-}
-
-static uint32_t gCPU, gGPU, gRAM;
+static uint32_t gGPU, sCPU, sGPU, sRAM;
+static bool on = false;
 static int powerState = POWER_TYPE_HANDHELD;
 
 void updatePowerState()
@@ -50,77 +37,55 @@ void updatePowerState()
 
 void setClocks()
 {
-    pcvGetClockRate(PcvModule_Gpu, &gGPU);
-    if(!isAsleep())// Not asleep
+    updatePowerState();
+    if(onGlobal)
     {
-        //Global takes priority over all
-        if(onGlobal && !isAsleep())
-        {
-            getClocks(&gCPU, &gGPU, &gRAM);
-            if(globalCPU != 0 && gCPU != globalCPU)
-                pcvSetClockRate(PcvModule_Cpu, globalCPU);
-
-            if(globalGPU != 0 && gGPU != globalGPU)
-                pcvSetClockRate(PcvModule_Gpu, globalGPU);
-
-            if(globalRAM != 0 && gRAM != globalRAM)
-                pcvSetClockRate(PcvModule_Emc, globalRAM);
-        }
-        else
-        {
-            updatePowerState();
-            if(powerState == POWER_TYPE_DOCKED && onDocked && !isAsleep()) //Docked mode
-            {
-                getClocks(&gCPU, &gGPU, &gRAM);
-                if(dockCPU != 0 && gCPU != dockCPU)
-                    pcvSetClockRate(PcvModule_Cpu, dockCPU);
-
-                if(dockGPU != 0 && gGPU != dockGPU)
-                    pcvSetClockRate(PcvModule_Gpu, dockGPU);
-
-                if(dockRAM != 0 && gRAM != dockRAM)
-                    pcvSetClockRate(PcvModule_Emc, dockRAM);
-            }
-            else if(powerState == POWER_TYPE_CHARGER && onCharger && !isAsleep())
-            {
-                getClocks(&gCPU, &gGPU, &gRAM);
-                if(chargCPU != 0 && gCPU != chargCPU)
-                    pcvSetClockRate(PcvModule_Cpu, chargCPU);
-
-                if(chargGPU != 0 && gGPU != chargGPU)
-                    pcvSetClockRate(PcvModule_Gpu, chargGPU);
-
-                if(chargRAM != 0 && gRAM != chargRAM)
-                    pcvSetClockRate(PcvModule_Emc, chargRAM);
-            }
-            else if(powerState == POWER_TYPE_USB && onUSB && !isAsleep())
-            {
-                getClocks(&gCPU, &gGPU, &gRAM);
-                if(usbCPU != 0 && gCPU != usbCPU)
-                    pcvSetClockRate(PcvModule_Cpu, usbCPU);
-
-                if(usbGPU != 0 && gGPU != usbGPU)
-                    pcvSetClockRate(PcvModule_Gpu, usbGPU);
-
-                if(usbRAM != 0 && gRAM != usbRAM)
-                    pcvSetClockRate(PcvModule_Emc, usbRAM);
-            }
-            else if(powerState == POWER_TYPE_HANDHELD && onHandheld && !isAsleep())
-            {
-                getClocks(&gCPU, &gGPU, &gRAM);
-                if(handCPU != 0 && gCPU != handCPU)
-                    pcvSetClockRate(PcvModule_Cpu, handCPU);
-
-                if(handGPU != 0 && gGPU != handGPU)
-                    pcvSetClockRate(PcvModule_Gpu, handGPU);
-
-                if(handRAM != 0 && gRAM != handRAM)
-                    pcvSetClockRate(PcvModule_Emc, handRAM);
-            }
-        }
+        sCPU = globalCPU;
+        sGPU = globalGPU;
+        sRAM = globalRAM;
+        on = onGlobal;
     }
     else
     {
-        svcSleepThread(100000000);
+        switch(powerState)
+        {
+            case POWER_TYPE_HANDHELD:
+                sCPU = handCPU;
+                sGPU = handGPU;
+                sRAM = handRAM;
+                on = onHandheld;
+                break;
+
+            case POWER_TYPE_USB:
+                sCPU = usbCPU;
+                sGPU = usbGPU;
+                sRAM = usbRAM;
+                on = onUSB;
+                break;
+
+            case POWER_TYPE_CHARGER:
+                sCPU = chargCPU;
+                sGPU = chargGPU;
+                sRAM = chargRAM;
+                on = onCharger;
+                break;
+
+            case POWER_TYPE_DOCKED:
+                sCPU = dockCPU;
+                sGPU = dockGPU;
+                sRAM = dockRAM;
+                on = onDocked;
+                break;
+        }
     }
+
+    pcvGetClockRate(PcvModule_Gpu, &gGPU);
+    if(gGPU != 0 && on)
+    {
+        pcvSetClockRate(PcvModule_Cpu, sCPU);
+        pcvSetClockRate(PcvModule_Gpu, sGPU);
+        pcvSetClockRate(PcvModule_Emc, sRAM);
+    }
+    else
+        svcSleepThread(1000000000);
 }
