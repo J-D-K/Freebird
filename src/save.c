@@ -81,6 +81,14 @@ void saveCfg()
         writeCfgDockLine(cfg, "CPU", getSpdString(dockCPU, spdStr));
         writeCfgDockLine(cfg, "GPU", getSpdString(dockGPU, spdStr));
         writeCfgDockLine(cfg, "RAM", getSpdString(dockRAM, spdStr));
+        fputc('\n', cfg);
+
+        fprintf(cfg, "#Global settings. Takes priority over all\n");
+        writeCfgGlobal(cfg, "CPU", getSpdString(globalCPU, spdStr));
+        writeCfgGlobal(cfg, "GPU", getSpdString(globalGPU, spdStr));
+        writeCfgGlobal(cfg, "RAM", getSpdString(globalRAM, spdStr));
+        fputc('\n', cfg);
+
         fclose(cfg);
     }
     else
