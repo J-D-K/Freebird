@@ -196,3 +196,24 @@ void setClockSpeed(const IpcParsedCommand *p)
     resp->mag = JK_R;
     resp->res = res;
 }
+
+void setKeepOnWake(const IpcParsedCommand *p)
+{
+    struct
+    {
+        uint64_t mag;
+        uint32_t cmd;
+        uint32_t onf;
+    } *in = p->Raw;
+    keepOnWake = in->onf;
+
+    IpcCommand c;
+    ipcInitialize(&c);
+    struct
+    {
+        uint64_t mag;
+        uint32_t res;
+    } *resp = ipcPrepareHeader(&c, sizeof(*resp));
+    resp->mag = JK_R;
+    resp->res = 0;
+}

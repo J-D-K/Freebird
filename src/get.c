@@ -250,3 +250,18 @@ void sendPowerType()
     resp->res = 0;
     resp->pwt = pwt;
 }
+
+void sendKeep()
+{
+    IpcCommand c;
+    ipcInitialize(&c);
+    struct
+    {
+        uint64_t mag;
+        uint32_t res;
+        uint32_t kep;
+    } *resp = ipcPrepareHeader(&c, sizeof(*resp));
+    resp->mag = JK_R;
+    resp->res = 0;
+    resp->kep = keepOnWake;
+}

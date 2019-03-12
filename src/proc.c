@@ -20,6 +20,8 @@ enum
     CMD_SENDCLOCK,
     CMD_SENDPWRTYPE,
     CMD_SAVECFG,
+    CMD_SETKEEP,
+    CMD_GETKEEP,
 } cmds;
 
 void ensureSession()
@@ -97,6 +99,14 @@ void processIpc(const IpcParsedCommand *proc)
 
             case CMD_SAVECFG:
                 saveCfg();
+                break;
+
+            case CMD_SETKEEP:
+                setKeepOnWake(proc);
+                break;
+
+            case CMD_GETKEEP:
+                sendKeep();
                 break;
 
             default:

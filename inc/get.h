@@ -15,4 +15,7 @@ void sendClockSpeed(const IpcParsedCommand *p);
 
 //Sends current power mode
 void sendPowerType();
+
+//Sends whether clocks are kept on wake
+void sendKeep();
 #endif // GET_H

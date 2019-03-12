@@ -4,7 +4,7 @@
 #include "apm.h"
 #include "var.h"
 
-static uint32_t gGPU, sCPU, sGPU, sRAM;
+static uint32_t gCPU, gGPU, gRAM, sCPU, sGPU, sRAM;
 static bool on = false;
 static int powerState = POWER_TYPE_HANDHELD;
 
@@ -82,9 +82,17 @@ void setClocks()
     pcvGetClockRate(PcvModule_Gpu, &gGPU);
     if(gGPU != 0 && on)
     {
-        pcvSetClockRate(PcvModule_Cpu, sCPU);
-        pcvSetClockRate(PcvModule_Gpu, sGPU);
-        pcvSetClockRate(PcvModule_Emc, sRAM);
+        pcvGetClockRate(PcvModule_Cpu, &gCPU);
+        if(sCPU != gCPU)
+            pcvSetClockRate(PcvModule_Cpu, sCPU);
+
+        pcvGetClockRate(PcvModule_Gpu, &gGPU);
+        if(sGPU != gGPU)
+            pcvSetClockRate(PcvModule_Gpu, sGPU);
+
+        pcvGetClockRate(PcvModule_Emc, &gRAM);
+        if(sRAM != gRAM)
+            pcvSetClockRate(PcvModule_Emc, sRAM);
     }
     else
         svcSleepThread(1000000000);
