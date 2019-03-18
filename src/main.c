@@ -9,6 +9,7 @@
 #include "var.h"
 #include "apm.h"
 #include "clocks.h"
+#include "read.h"
 
 uint32_t __nx_applet_type = AppletType_None;
 
@@ -67,6 +68,8 @@ void __appExit(void)
 
 int main(int argc, const char *argv[])
 {
+    readConfig();
+
     Thread serverThread;
     threadCreate(&serverThread, server, NULL, 0x4000, 0x2B, -2);
     threadStart(&serverThread);
