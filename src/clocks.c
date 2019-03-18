@@ -83,17 +83,27 @@ void setClocks()
     if(gGPU != 0 && on)
     {
         pcvGetClockRate(PcvModule_Cpu, &gCPU);
-        if(sCPU != gCPU)
+        if(sCPU != 0 && sCPU != gCPU)
             pcvSetClockRate(PcvModule_Cpu, sCPU);
 
         pcvGetClockRate(PcvModule_Gpu, &gGPU);
-        if(sGPU != gGPU)
+        if(sGPU != 0 && sGPU != gGPU)
             pcvSetClockRate(PcvModule_Gpu, sGPU);
 
         pcvGetClockRate(PcvModule_Emc, &gRAM);
-        if(sRAM != gRAM)
+        if(sRAM != 0 && sRAM != gRAM)
             pcvSetClockRate(PcvModule_Emc, sRAM);
     }
     else
+    {
+        if(!keepOnWake)
+        {
+            onHandheld = false;
+            onUSB = false;
+            onCharger = false;
+            onDocked = false;
+            onGlobal = false;
+        }
         svcSleepThread(1000000000);
+    }
 }
