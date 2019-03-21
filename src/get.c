@@ -57,6 +57,7 @@ void sendOnOff(const IpcParsedCommand *p)
 
         case POWER_TYPE_GLOBAL:
             resp->on = onGlobal;
+            break;
 
         default:
             resp->on = 0;

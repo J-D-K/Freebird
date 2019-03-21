@@ -41,8 +41,13 @@ void setClocks()
     if(onGlobal)
     {
         sCPU = globalCPU;
-        sGPU = globalGPU;
         sRAM = globalRAM;
+
+        if(powerState == POWER_TYPE_HANDHELD && globalGPU > 768000000)
+            sGPU = 768000000;
+        else
+            sGPU = globalGPU;
+
         on = onGlobal;
     }
     else
