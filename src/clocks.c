@@ -38,6 +38,12 @@ void updatePowerState()
 void setClocks()
 {
     updatePowerState();
+
+    if(handGPU > 768000000)
+        handGPU = 768000000;
+    if(usbGPU > 768000000)
+        usbGPU = 768000000;
+
     if(onGlobal)
     {
         sCPU = globalCPU;
