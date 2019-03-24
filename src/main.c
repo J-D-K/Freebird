@@ -26,7 +26,7 @@ void __libnx_initheap(void)
 
 void __appInit(void)
 {
-    svcSleepThread(3000000000);
+    svcSleepThread(5000000000);
 
     Result res = 0;
     if(R_FAILED(res = smInitialize()))
