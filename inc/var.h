@@ -8,7 +8,7 @@
 
 #define VERSION_MAJ 0
 #define VERSION_MIN 9
-#define VERSION_REV 1
+#define VERSION_REV 2
 
 typedef enum
 {

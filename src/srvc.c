@@ -1,105 +1,84 @@
 #include <switch.h>
+#include <malloc.h>
+#include <string.h>
 
 #include "srvc.h"
 #include "proc.h"
+#include "var.h"
 
-enum
+serviceSession *serverSessionCreate(Handle sess, Handle srv, ThreadFunc func)
 {
-    stateSyncAccept,
-    stateServe
-} serviceStates;
+    serviceSession *ret = malloc(sizeof(serviceSession));
+    ret->serviceHandle = srv;
+    ret->sessionHandle = sess;
+    ret->close = false;
 
-static int state = stateSyncAccept;
-static bool run = true;
+    threadCreate(&ret->t, func, ret, 0x4000, 0x2B, -2);
+    threadStart(&ret->t);
 
-static Handle srvcHandle, sessionHandle;
-
-Handle getServiceHandle()
-{
-    return srvcHandle;
+    return ret;
 }
 
-Handle getSessionHandle()
+void serviceSessionTerminate(serviceSession *s)
 {
-    return sessionHandle;
+    threadClose(&s->t);
+    free(s);
 }
 
-bool registerService()
+ipcServer *ipcServerCreate(const char *name, unsigned int _max)
 {
-    if(R_FAILED(smRegisterService(&srvcHandle, "freebird", false, 1)))
-        return false;
-
-    return true;
-}
-
-void unregisterService()
-{
-    smUnregisterService("freebird");
-    svcCloseHandle(srvcHandle);
-}
-
-bool syncAndAccept()
-{
-    if(R_FAILED(svcAcceptSession(&sessionHandle, srvcHandle)))
-        return false;
-
-    return true;
-}
-
-void reply()
-{
-    int ind = 0;
-    svcReplyAndReceive(&ind, &sessionHandle, 0, sessionHandle, 0);
-}
-
-bool receiveIPC(IpcParsedCommand *p)
-{
-    int ind = 0;
-    if(R_FAILED(svcReplyAndReceive(&ind, &sessionHandle, 1, 0, U64_MAX)))
-        return false;
-    ipcParse(p);
-    return true;
-}
-
-void server()
-{
-    while(run)
+    ipcServer *ret = malloc(sizeof(ipcServer));
+    if(R_FAILED(smRegisterService(&ret->serviceHandle, name, false, _max)))
     {
-        switch(state)
-        {
-            case stateSyncAccept:
-                if(syncAndAccept())
-                    state = stateServe;
-                break;
+        free(ret);
+        return NULL;
+    }
 
-            case stateServe:
-                {
-                    IpcParsedCommand p;
-                    if(receiveIPC(&p))
-                    {
-                        if(p.CommandType == IpcCommandType_Close)
-                        {
-                            svcCloseHandle(getSessionHandle());
-                            state = stateSyncAccept;
-                        }
-                        else
-                        {
-                            processIpc(&p);
-                        }
-                    }
-                    else
-                    {
-                        svcCloseHandle(getSessionHandle());
-                        state = syncAndAccept();
-                    }
-                }
-                break;
+    ret->sessionCount = 0;
+    ret->maxSession = _max;
+    memset(ret->name, 0, 8);
+    memcpy(ret->name, name, strlen(name));
+    ret->sessions = malloc(sizeof(serviceSession *) * 1);
+
+    return ret;
+}
+
+void ipcServerDestroy(ipcServer *i)
+{
+    smUnregisterService(i->name);
+    free(i);
+}
+
+void ipcServerAccept(ipcServer *i, ThreadFunc func)
+{
+    if(i->sessionCount < i->maxSession)
+    {
+        Handle sess;
+        if(R_SUCCEEDED(svcAcceptSession(&sess, i->serviceHandle)))
+        {
+            serviceSession *newSession = serverSessionCreate(sess, i->serviceHandle, func);
+            i->sessions = realloc(i->sessions, sizeof(serviceSession *) * ++i->sessionCount);
+            i->sessions[i->sessionCount - 1] = newSession;
         }
-        svcSleepThread(500000);
     }
 }
 
-void serverExit()
+void ipcServerUpdate(ipcServer *i)
 {
-    run = false;
+    for(unsigned int c = 0; c < i->sessionCount; c++)
+    {
+        if(i->sessions[c]->close == true)
+        {
+            serviceSessionTerminate(i->sessions[c]);
+
+            //Collapse
+            for(unsigned int j = c; j < i->sessionCount; j++)
+                i->sessions[j] = i->sessions[j + 1];
+
+            //realloc
+            i->sessions = realloc(i->sessions, sizeof(serviceSession *) * --i->sessionCount);
+
+            //pray4jk
+        }
+    }
 }

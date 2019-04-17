@@ -107,7 +107,7 @@ void setClocks()
     }
     else
     {
-        if(!keepOnWake)
+        if(gGPU != 0 && !keepOnWake)
         {
             onHandheld = false;
             onUSB = false;

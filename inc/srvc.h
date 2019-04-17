@@ -3,17 +3,27 @@
 
 #include <switch.h>
 
-Handle getServiceHandle();
-Handle getSessionHandle();
+typedef struct
+{
+    Thread t;
+    Handle sessionHandle, serviceHandle;
+    bool close;
+} serviceSession;
 
-bool registerService();
-void unregisterService();
+serviceSession *serviceSessionCreate(Handle sess, Handle srv, ThreadFunc func);
+void serviceSessionTerminate(serviceSession *s);
 
-bool syncAndAccept();
-bool receiveIPC();
-void reply();
+typedef struct
+{
+    Handle serviceHandle;
+    serviceSession **sessions;
+    unsigned int sessionCount, maxSession;
+    char name[8];
+} ipcServer;
 
-void server();
-void serverExit();
+ipcServer *ipcServerCreate(const char *name, unsigned int _max);
+void ipcServerDestroy(ipcServer *i);
+void ipcServerAccept(ipcServer *i, ThreadFunc func);
+void ipcServerUpdate(ipcServer *i);
 
 #endif // SRVC_H

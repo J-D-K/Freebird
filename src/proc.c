@@ -1,6 +1,5 @@
 #include <switch.h>
 #include <stdint.h>
-#include <time.h>
 
 #include "proc.h"
 #include "srvc.h"
@@ -116,6 +115,4 @@ void processIpc(const IpcParsedCommand *proc)
     }
     else
         sendDefault();
-
-    reply();
 }

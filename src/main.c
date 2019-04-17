@@ -10,6 +10,7 @@
 #include "apm.h"
 #include "clocks.h"
 #include "read.h"
+#include "fbsrv.h"
 
 uint32_t __nx_applet_type = AppletType_None;
 
@@ -49,13 +50,10 @@ void __appInit(void)
 
     if(R_FAILED(res = fsdevMountSdmc()))
         fatalSimple(res);
-
-    registerService();
 }
 
 void __appExit(void)
 {
-    unregisterService();
     fsdevUnmountAll();
     fsExit();
     pcvExit();
@@ -70,17 +68,17 @@ int main(int argc, const char *argv[])
 {
     readConfig();
 
-    Thread serverThread;
-    threadCreate(&serverThread, server, NULL, 0x4000, 0x2B, -2);
-    threadStart(&serverThread);
+    ipcServer *fb = ipcServerCreate("freebird", 1);
 
     while(appletMainLoop())
     {
         setClocks();
 
+        ipcServerAccept(fb, freebirdServer);
+        ipcServerUpdate(fb);
+
         svcSleepThread(500000000);
     }
 
-    serverExit();
-    threadClose(&serverThread);
+    ipcServerDestroy(fb);
 }
