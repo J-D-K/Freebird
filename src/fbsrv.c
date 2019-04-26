@@ -25,6 +25,9 @@ void freebirdServer(void *arg)
             }
         }
         else
+        {
             s->close = true;
+            svcCloseHandle(s->sessionHandle);
+        }
     }
 }

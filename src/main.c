@@ -5,12 +5,14 @@
 
 #include "srvc.h"
 #include "proc.h"
-#include "util.h"
 #include "var.h"
 #include "apm.h"
 #include "clocks.h"
 #include "read.h"
+
 #include "fbsrv.h"
+#include "clkpass.h"
+#include "apmsrv.h"
 
 uint32_t __nx_applet_type = AppletType_None;
 
@@ -27,8 +29,6 @@ void __libnx_initheap(void)
 
 void __appInit(void)
 {
-    svcSleepThread(5000000000);
-
     Result res = 0;
     if(R_FAILED(res = smInitialize()))
         fatalSimple(MAKERESULT(Module_Libnx, LibnxError_InitFail_SM));
@@ -37,10 +37,17 @@ void __appInit(void)
         fatalSimple(res);
 
     if(R_FAILED(res = apmInit()))
-       fatalSimple(res);
-
-    if(R_FAILED(res = pcvInitialize()))
         fatalSimple(res);
+    if(hosversionBefore(8, 0, 0))
+    {
+        if(R_FAILED(res = pcvInitialize()))
+            fatalSimple(res);
+    }
+    else
+    {
+        if(R_FAILED(res = clkrstInitialize()))
+            fatalSimple(res);
+    }
 
     if(R_FAILED(res = psmInitialize()))
         fatalSimple(res);
@@ -67,18 +74,37 @@ void __appExit(void)
 int main(int argc, const char *argv[])
 {
     readConfig();
+    hostVerInit();
 
-    ipcServer *fb = ipcServerCreate("freebird", 1);
+    if(hostVer == 8)
+    {
+        clkrstOpenSession(&clkCpu, PcvModuleId_CpuBus, 3);
+        clkrstOpenSession(&clkGpu, PcvModuleId_GPU, 3);
+        clkrstOpenSession(&clkRam, PcvModuleId_EMC, 3);
+    }
 
+    ipcServer *fb = ipcServerCreate("freebird", 4);
+    ipcServer *clkpass = ipcServerCreate("clkpass", 4);
     while(appletMainLoop())
     {
         setClocks();
 
         ipcServerAccept(fb, freebirdServer);
-        ipcServerUpdate(fb);
+        ipcServerAccept(clkpass, clkPassThread);
 
-        svcSleepThread(500000000);
+        ipcServerUpdate(fb);
+        ipcServerUpdate(clkpass);
+
+        svcSleepThread(100000000);
+    }
+
+    if(hostVer == 8)
+    {
+        clkrstCloseSession(&clkCpu);
+        clkrstCloseSession(&clkGpu);
+        clkrstCloseSession(&clkRam);
     }
 
     ipcServerDestroy(fb);
+    ipcServerDestroy(clkpass);
 }

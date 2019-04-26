@@ -51,6 +51,9 @@ void ipcServerDestroy(ipcServer *i)
 
 void ipcServerAccept(ipcServer *i, ThreadFunc func)
 {
+    if(i == NULL)
+        return;
+
     if(i->sessionCount < i->maxSession)
     {
         Handle sess;
@@ -65,6 +68,9 @@ void ipcServerAccept(ipcServer *i, ThreadFunc func)
 
 void ipcServerUpdate(ipcServer *i)
 {
+    if(i == NULL)
+        return;
+
     for(unsigned int c = 0; c < i->sessionCount; c++)
     {
         if(i->sessions[c]->close == true)

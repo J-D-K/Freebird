@@ -27,5 +27,16 @@ extern uint32_t usbCPU, usbGPU, usbRAM;
 extern uint32_t chargCPU, chargGPU, chargRAM;
 extern uint32_t dockCPU, dockGPU, dockRAM;
 extern uint32_t globalCPU, globalGPU, globalRAM;
+extern uint32_t hostVer;
+
+extern ClkrstSession clkCpu, clkGpu, clkRam;
+
+static inline void hostVerInit()
+{
+    if(hosversionAtLeast(8, 0, 0))
+        hostVer = 8;
+    else
+        hostVer = 7;
+}
 
 #endif // VAR_H

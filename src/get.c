@@ -83,15 +83,15 @@ void sendClockSpeed(const IpcParsedCommand *p)
             {
                 switch(in->mod)
                 {
-                    case PcvModule_Cpu:
+                    case PcvModule_CpuBus:
                         clkSpd = handCPU;
                         break;
 
-                    case PcvModule_Gpu:
+                    case PcvModule_GPU:
                         clkSpd = handGPU;
                         break;
 
-                    case PcvModule_Emc:
+                    case PcvModule_EMC:
                         clkSpd = handRAM;
                         break;
 
@@ -107,15 +107,15 @@ void sendClockSpeed(const IpcParsedCommand *p)
             {
                 switch(in->mod)
                 {
-                    case PcvModule_Cpu:
+                    case PcvModule_CpuBus:
                         clkSpd = usbCPU;
                         break;
 
-                    case PcvModule_Gpu:
+                    case PcvModule_GPU:
                         clkSpd = usbGPU;
                         break;
 
-                    case PcvModule_Emc:
+                    case PcvModule_EMC:
                         clkSpd = usbRAM;
                         break;
 
@@ -131,15 +131,15 @@ void sendClockSpeed(const IpcParsedCommand *p)
             {
                 switch(in->mod)
                 {
-                    case PcvModule_Cpu:
+                    case PcvModule_CpuBus:
                         clkSpd = chargCPU;
                         break;
 
-                    case PcvModule_Gpu:
+                    case PcvModule_GPU:
                         clkSpd = chargGPU;
                         break;
 
-                    case PcvModule_Emc:
+                    case PcvModule_EMC:
                         clkSpd = chargRAM;
                         break;
 
@@ -155,15 +155,15 @@ void sendClockSpeed(const IpcParsedCommand *p)
             {
                 switch(in->mod)
                 {
-                    case PcvModule_Cpu:
+                    case PcvModule_CpuBus:
                         clkSpd = dockCPU;
                         break;
 
-                    case PcvModule_Gpu:
+                    case PcvModule_GPU:
                         clkSpd = dockGPU;
                         break;
 
-                    case PcvModule_Emc:
+                    case PcvModule_EMC:
                         clkSpd = dockRAM;
                         break;
 
@@ -179,15 +179,15 @@ void sendClockSpeed(const IpcParsedCommand *p)
             {
                 switch(in->mod)
                 {
-                    case PcvModule_Cpu:
+                    case PcvModule_CpuBus:
                         clkSpd = globalCPU;
                         break;
 
-                    case PcvModule_Gpu:
+                    case PcvModule_GPU:
                         clkSpd = globalGPU;
                         break;
 
-                    case PcvModule_Emc:
+                    case PcvModule_EMC:
                         clkSpd = globalRAM;
                         break;
 

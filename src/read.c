@@ -7,30 +7,30 @@
 #include "spd.h"
 #include "read.h"
 
-void setCPUSpd(uint32_t *var, int shrtSpd)
+static void setCPUSpd(uint32_t *var, int shrtSpd)
 {
     int i = getCpuInd(shrtSpd);
     *var = cpuSpds[i];
 }
 
-void setGPUSpd(uint32_t *var, int shrtSpd)
+static void setGPUSpd(uint32_t *var, int shrtSpd)
 {
     int i = getGpuInd(shrtSpd);
     *var = gpuSpds[i];
 }
 
-void setRAMSpd(uint32_t *var, int shrtSpd)
+static void setRAMSpd(uint32_t *var, int shrtSpd)
 {
     int i = getRamInd(shrtSpd);
     *var = ramSpds[i];
 }
 
-inline bool _strcmp(const char *str1, const char *str2)
+static inline bool _strcmp(const char *str1, const char *str2)
 {
     return strcmp(str1, str2) == 0;
 }
 
-void setBool(bool *b, const char *tf)
+static void setBool(bool *b, const char *tf)
 {
     if(_strcmp("true", tf))
        *b = true;
