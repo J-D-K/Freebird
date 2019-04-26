@@ -33,6 +33,13 @@ void __appInit(void)
     if(R_FAILED(res = smInitialize()))
         fatalSimple(MAKERESULT(Module_Libnx, LibnxError_InitFail_SM));
 
+    if(R_FAILED(res = setsysInitialize()))
+        fatalSimple(res);
+
+    SetSysFirmwareVersion ver;
+    setsysGetFirmwareVersion(&ver);
+    hosversionSet(MAKEHOSVERSION(ver.major, ver.minor, ver.micro));
+
     if(R_FAILED(res = apmInitialize()))
         fatalSimple(res);
 
@@ -63,7 +70,12 @@ void __appExit(void)
 {
     fsdevUnmountAll();
     fsExit();
-    pcvExit();
+
+    if(hosversionAtLeast(8, 0, 0))
+        clkrstExit();
+    else
+        pcvExit();
+    setsysExit();
     psmExit();
     hidExit();
     apmClose();
@@ -87,18 +99,18 @@ int main(int argc, const char *argv[])
     ipcServer *clkpass = ipcServerCreate("clkpass", 4);
     while(appletMainLoop())
     {
-        setClocks();
-
         ipcServerAccept(fb, freebirdServer);
         ipcServerAccept(clkpass, clkPassThread);
 
         ipcServerUpdate(fb);
         ipcServerUpdate(clkpass);
 
-        svcSleepThread(100000000);
+        setClocks();
+
+        svcSleepThread(1000000);
     }
 
-    if(hostVer == 8)
+    if(hostVer == 0)
     {
         clkrstCloseSession(&clkCpu);
         clkrstCloseSession(&clkGpu);

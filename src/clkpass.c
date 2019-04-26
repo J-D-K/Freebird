@@ -32,6 +32,9 @@ void openSession()
 
 void sendCurrClock(IpcParsedCommand *p)
 {
+    IpcCommand c;
+    ipcInitialize(&c);
+
     struct
     {
         uint64_t mag;
@@ -39,9 +42,6 @@ void sendCurrClock(IpcParsedCommand *p)
         uint32_t mod;
     } *raw = p->Raw;
 
-
-    IpcCommand c;
-    ipcInitialize(&c);
     struct
     {
         uint64_t mag;
@@ -76,15 +76,14 @@ void clkPassThread(void *arg)
 {
     serviceSession *s = (serviceSession *)arg;
     int ind = 0;
+    IpcParsedCommand p;
     while(!s->close)
     {
         if(R_SUCCEEDED(svcReplyAndReceive(&ind, &s->sessionHandle, 1, 0, U64_MAX)))
         {
-            IpcParsedCommand p;
             ipcParse(&p);
             if(p.CommandType != IpcCommandType_Close)
             {
-
                 struct
                 {
                     uint64_t mag;
@@ -118,6 +117,11 @@ void clkPassThread(void *arg)
                 s->close =true;
                 svcCloseHandle(s->sessionHandle);
             }
+        }
+        else
+        {
+            s->close = true;
+            svcCloseHandle(s->sessionHandle);
         }
     }
 }

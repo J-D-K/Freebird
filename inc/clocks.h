@@ -5,6 +5,8 @@
 
 void setClocks();
 
+static inline Mutex cpuMut = 0, gpuMut = 0, ramMut = 0;
+
 static inline uint32_t getCPUSpd()
 {
     uint32_t ret = 0;
@@ -52,7 +54,7 @@ static inline void setCPUSpd(uint32_t spd)
 static inline void setGPUSpd(uint32_t spd)
 {
     if(hostVer == 8)
-        clkrstSetClockRate(&clkGpu, spd);
+        clkrstSetClockRate(&clkGpu, PcvModuleId_GPU);
     else
         pcvSetClockRate(PcvModule_GPU, spd);
 }
