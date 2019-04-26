@@ -54,7 +54,7 @@ static inline void setCPUSpd(uint32_t spd)
 static inline void setGPUSpd(uint32_t spd)
 {
     if(hostVer == 8)
-        clkrstSetClockRate(&clkGpu, PcvModuleId_GPU);
+        clkrstSetClockRate(&clkGpu, spd);
     else
         pcvSetClockRate(PcvModule_GPU, spd);
 }
